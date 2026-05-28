@@ -18,12 +18,6 @@ body{
   min-height:100vh;font-family:'Share Tech Mono',monospace;color:#c8dce8;
   overflow:hidden;transition:filter 0.6s;
 }
-body.vm{filter:hue-rotate(200deg) saturate(1.35);}
-body.um{filter:hue-rotate(40deg) saturate(1.6) brightness(1.05);}
-body.vp{filter:hue-rotate(280deg) saturate(1.8) brightness(1.1);}
-body.vt{filter:hue-rotate(160deg) saturate(1.7) brightness(1.08);}
-body.ch{filter:hue-rotate(15deg) saturate(2) brightness(1.08);}
-body.vc{filter:hue-rotate(100deg) saturate(2.2) brightness(1.12);}
 body::before{
   content:'';position:fixed;inset:0;
   background-image:
@@ -313,11 +307,59 @@ canvas{display:block;background:#040c18;}
   .ms-modes{flex-direction:column;align-items:center;}
   .mcard{width:200px;}
 }
+
+/* ── SKIN CARDS ── */
+.sk-card{
+  width:108px;padding:11px 7px 10px;border-radius:10px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:7px;
+  border:1px solid;transition:all 0.18s;position:relative;text-align:center;
+  background:rgba(0,0,0,0.3);
+}
+.sk-card:hover{transform:translateY(-2px);}
+.sk-card.sk-active{transform:translateY(-2px);}
+.sk-card .sk-name{font-family:'Orbitron',monospace;font-size:9px;font-weight:900;letter-spacing:2px;}
+.sk-card .sk-tag{font-size:8px;letter-spacing:2px;padding:3px 7px;border-radius:3px;font-family:'Orbitron',monospace;font-weight:700;}
+.sk-tag.tag-active{background:rgba(0,207,255,0.15);color:#00cfff;border:1px solid rgba(0,207,255,0.4);}
+.sk-tag.tag-owned{background:rgba(68,255,153,0.12);color:#44ff99;border:1px solid rgba(68,255,153,0.3);}
+.sk-tag.tag-price{background:rgba(255,221,0,0.1);color:#ffdd00;border:1px solid rgba(255,221,0,0.3);}
+.sk-tag.tag-locked{background:rgba(80,80,80,0.15);color:#445566;border:1px solid rgba(80,80,80,0.2);}
+.sk-preview{border-radius:5px;display:block;}
+
+/* ── LANGUAGE SWITCHER ── */
+#lang-bar{
+  position:fixed;top:12px;right:16px;z-index:100;
+  display:flex;gap:4px;align-items:center;
+}
+.lang-btn{
+  font-family:'Orbitron',monospace;font-size:9px;font-weight:700;
+  letter-spacing:1px;padding:5px 9px;border-radius:5px;cursor:pointer;
+  border:1px solid rgba(0,207,255,0.25);color:#3a7a9a;
+  background:rgba(0,207,255,0.05);transition:all 0.15s;
+}
+.lang-btn.active{
+  border-color:rgba(0,207,255,0.6);color:var(--cyan);
+  background:rgba(0,207,255,0.14);box-shadow:0 0 10px rgba(0,207,255,0.2);
+}
+.lang-btn:hover:not(.active){
+  border-color:rgba(0,207,255,0.4);color:#6ab8d8;
+  background:rgba(0,207,255,0.08);
+}
+#lang-status{
+  font-size:8px;letter-spacing:2px;color:#1e4a62;
+  font-family:'Orbitron',monospace;margin-left:4px;min-width:60px;
+}
 </style>
 </head>
 <body>
 
-<div id="app">
+<!-- LANGUAGE SWITCHER -->
+<div id="lang-bar">
+  <button class="lang-btn active" onclick="setLang('hy')">ՀԱՅ</button>
+  <button class="lang-btn" onclick="setLang('en')">ENG</button>
+  <button class="lang-btn" onclick="setLang('ru')">РУС</button>
+  <span id="lang-status"></span>
+</div>
+
 
   <!-- SIDE PANEL -->
   <div id="panel">
@@ -332,6 +374,10 @@ canvas{display:block;background:#040c18;}
       <div class="sval gr" id="best-disp">0</div>
     </div>
     <div class="sblock">
+      <div class="slabel">◈ COINS</div>
+      <div class="sval" style="color:#ffdd00;font-size:19px;letter-spacing:1px;" id="coins-disp">0</div>
+    </div>
+    <div class="sblock">
       <div class="slabel">Level</div>
       <div class="sval" id="level-disp">1</div>
       <div class="spbar"><div class="spfill" id="speed-fill" style="width:10%"></div></div>
@@ -339,7 +385,7 @@ canvas{display:block;background:#040c18;}
     <div class="sblock">
       <div class="slabel">Next Lvl</div>
       <div class="nlbar"><div class="nlfill" id="next-lvl-fill" style="width:0%"></div></div>
-      <div class="nltext" id="next-lvl-text">0 / 20 🍎</div>
+      <div class="nltext" id="next-lvl-text">0 / 15 🍎</div>
     </div>
     <div class="sblock">
       <div class="slabel">Length</div>
@@ -351,6 +397,7 @@ canvas{display:block;background:#040c18;}
     </div>
     <button class="btn btn-c" onclick="showModeSelect()">▶ START</button>
     <button class="btn btn-o" onclick="togglePause()">⏸ PAUSE</button>
+    <button class="btn" style="background:rgba(255,221,0,0.07);border-color:rgba(255,221,0,0.35);color:#ffdd00;font-size:9px;letter-spacing:2px;" onclick="openShop()">◈ SKINS</button>
     <div class="sblock">
       <div class="slabel">Controls</div>
       <div class="leg">
@@ -457,6 +504,18 @@ canvas{display:block;background:#040c18;}
         <div class="ov-info" style="font-size:9px;color:#1e3a52;">
           ↑↓←→ կամ WASD — կառավարել
         </div>
+        <button class="btn" style="background:rgba(255,221,0,0.07);border-color:rgba(255,221,0,0.4);color:#ffdd00;font-size:10px;letter-spacing:3px;padding:11px 0;width:220px;margin-top:4px;" onclick="openShop()">◈ SKIN SHOP</button>
+      </div>
+
+      <!-- SKIN SHOP OVERLAY -->
+      <div class="overlay" id="ov-shop" style="display:none;overflow-y:auto;padding:18px 12px;gap:14px;justify-content:flex-start;align-items:center;">
+        <div class="ov-t gd" style="font-size:18px;letter-spacing:4px;">◈ SKIN SHOP</div>
+        <div style="font-size:9px;letter-spacing:2px;color:#4a6a5a;text-align:center;line-height:1.8;">
+          Ամեն 3 food = <span style="color:#ffdd00;">1 ◈</span> &nbsp;|&nbsp; Bonus = level × 1<br>
+          <span style="color:#ffdd00;font-size:11px;font-family:'Orbitron',monospace;">◈ <span id="shop-coins-disp">0</span></span>
+        </div>
+        <div id="skin-grid" style="display:flex;flex-wrap:wrap;gap:9px;justify-content:center;max-width:520px;"></div>
+        <button class="btn btn-o" style="width:140px;padding:10px;margin-top:2px;" onclick="closeShop()">✕ CLOSE</button>
       </div>
 
       <!-- GAME OVER -->
@@ -507,7 +566,7 @@ const COLS = 25, ROWS = 25, CELL = 22;
 canvas.width  = COLS * CELL;
 canvas.height = ROWS * CELL;
 
-const FOOD_PER_LEVEL = 20; // level up every 20 eaten food
+const FOOD_PER_LEVEL = 15; // level up every 15 eaten food
 
 const C = {
   bg:        '#040c18',
@@ -874,7 +933,7 @@ function gameTick() {
     showTick(`BONUS +${pts}!`);
     ate = true;
   }
-
+ 
   if (!ate) snake.pop();
 
   if (bonus) {
@@ -926,6 +985,11 @@ function endGame() {
   highScores.sort((a,b)=>b-a);
   highScores=highScores.slice(0,5);
   try { localStorage.setItem('neonsnake_hs', JSON.stringify(highScores)); } catch(e){}
+
+  // Award coins: 1 per 3 food eaten + level×1
+  const earned = Math.floor(foodEaten / 3) + level;
+  addCoins(earned);
+
   updateHUD();
   const isNew = score===highScores[0];
   const ovt   = document.getElementById('ov-over-t');
@@ -948,7 +1012,7 @@ function endGame() {
   document.getElementById('ov-info').textContent  =
     `Level ${level} | Length ${snake.length} | ${foodEaten} 🍎` +
     (isNew?' | ★ BEST':'') +
-    ` | ${modeLbl}`;
+    ` | ${modeLbl} | +${earned} ◈`;
   document.getElementById('ov-over').style.display = 'flex';
 }
 
@@ -1109,13 +1173,15 @@ function drawCell(x,y,fill,glow,gsz=12,r=4){
 
 function drawSnake() {
   if(!snake) return;
-  let hCol, hGlw;
-  if      (isVchaos()) { hCol=C.vcHead; hGlw=C.vcGlow; }
-  else if (isChaos())  { hCol=C.chHead; hGlw=C.chGlow; }
-  else if (isVplus())  { hCol=C.vpHead; hGlw=C.vpGlow; }
-  else if (isVortex()) { hCol=C.vHead;  hGlw=C.vGlow; }
-  else if (isUltra())  { hCol=C.uHead;  hGlw=C.uGlow; }
-  else                 { hCol=C.snakeHead; hGlw=C.snakeGlow; }
+  const skin = getSkin();
+
+  // Head color: rainbow cycles with frameCount, others use skin.head
+  let hCol = skin.rainbow
+    ? `hsl(${(frameCount * 5) % 360},100%,62%)`
+    : skin.head;
+  let hGlw = skin.rainbow
+    ? `hsla(${(frameCount * 5) % 360},100%,62%,0.6)`
+    : skin.headGlow;
 
   snake.forEach((seg,i)=>{
     if(i===0){
@@ -1133,23 +1199,16 @@ function drawSnake() {
       ctx.beginPath();ctx.arc(e1x+.8,e1y-.8,1.2,0,Math.PI*2);ctx.fill();
       ctx.beginPath();ctx.arc(e2x+.8,e2y-.8,1.2,0,Math.PI*2);ctx.fill();
     } else {
-      const alpha=Math.max(0.25,1-i/(snake.length*1.4));
+      const alpha = Math.max(0.25, 1 - i / (snake.length * 1.4));
       let bc;
-      if      (isVchaos()){const g=Math.floor(100+alpha*155);bc=`rgba(10,${g},${Math.floor(60+alpha*100)},${alpha+.1})`;}
-      else if (isChaos()) {const r=Math.floor(100+alpha*155);bc=`rgba(${r},${Math.floor(30+alpha*50)},5,${alpha+.1})`;}
-      else if (isVplus()) {const r=Math.floor(100+alpha*155),b=Math.floor(30+alpha*80);bc=`rgba(${r},${b},${Math.floor(60+alpha*100)},${alpha+.1})`;}
-      else if (isVortex()){const r=Math.floor(80+alpha*140),b=Math.floor(100+alpha*155);bc=`rgba(${r},15,${b},${alpha+.1})`;}
-      else if (isUltra()) {const r=Math.floor(100+alpha*155),g=Math.floor(80+alpha*120);bc=`rgba(${r},${g},10,${alpha+.1})`;}
-      else               {const g=Math.floor(80+alpha*175);bc=`rgba(20,${g},50,${alpha+.1})`;}
-      let bg=null;
-      if(i<3){
-        if      (isVchaos()) bg='rgba(0,255,170,.18)';
-        else if (isChaos())  bg='rgba(255,102,0,.18)';
-        else if (isVplus())  bg='rgba(255,68,204,.15)';
-        else if (isVortex()) bg='rgba(204,68,255,.15)';
-        else if (isUltra())  bg='rgba(255,200,0,.15)';
-        else                 bg='rgba(68,255,153,.15)';
+      if (skin.rainbow) {
+        const hue = ((frameCount * 5) + i * 28) % 360;
+        bc = `hsla(${hue},100%,40%,${alpha + 0.1})`;
+      } else {
+        const r = skin.bodyR(alpha), g = skin.bodyG(alpha), b = skin.bodyB(alpha);
+        bc = `rgba(${r},${g},${b},${alpha + 0.1})`;
       }
+      const bg = i < 3 ? skin.nearGlow : null;
       drawCell(seg.x,seg.y,bc,bg,6,3);
     }
   });
@@ -1226,13 +1285,294 @@ function drawPortals() {
 
 function drawDeath() {
   if(!snake) return;
+  const skin = getSkin();
+  const dc = skin.rainbow ? `hsl(${(frameCount*5)%360},100%,62%)` : (skin.head || '#ff4455');
   ctx.fillStyle='rgba(255,68,85,.06)';ctx.fillRect(0,0,canvas.width,canvas.height);
   snake.forEach((seg,i)=>{
-    const dc = isVchaos() ? '#00ffaa' : isChaos() ? '#ff6600' : '#ff4455';
-    ctx.fillStyle=i===0?dc:`rgba(${isVchaos()?10:200},${isVchaos()?180:isChaos()?80:50},${isVchaos()?100:isChaos()?0:60},${.6-i/snake.length*.4})`;
-    ctx.shadowColor=dc;ctx.shadowBlur=i===0?14:4;
+    if (i === 0) {
+      ctx.fillStyle = dc;
+      ctx.shadowColor = dc; ctx.shadowBlur = 14;
+    } else {
+      const alpha = 0.6 - i/snake.length*0.4;
+      if (skin.rainbow) {
+        const hue = ((frameCount*5)+i*28)%360;
+        ctx.fillStyle = `hsla(${hue},100%,40%,${alpha})`;
+      } else {
+        const a2 = Math.max(0.25, 1 - i/(snake.length*1.4));
+        ctx.fillStyle = `rgba(${skin.bodyR(a2)},${skin.bodyG(a2)},${skin.bodyB(a2)},${alpha})`;
+      }
+      ctx.shadowColor = dc; ctx.shadowBlur = 4;
+    }
     ctx.beginPath();ctx.roundRect(seg.x*CELL+1,seg.y*CELL+1,CELL-2,CELL-2,3);ctx.fill();
     ctx.shadowBlur=0;
+  });
+}
+
+// ─── SKIN SYSTEM ───
+// Skins apply to snake visuals in ALL modes.
+// Mode still controls BG color, grid, wall color, border effects.
+// Snake head+body color = from active skin.
+
+const SKINS = [
+  // ── FREE ──
+  {
+    id:'neon',     name:'NEON',       price:0,    free:true,
+    head:'#44ff99', headGlow:'rgba(68,255,153,0.55)',
+    bodyR:(a)=>20,                    bodyG:(a)=>Math.floor(80+a*175),  bodyB:(a)=>50,
+    nearGlow:'rgba(68,255,153,.18)',  border:'rgba(68,255,153,0.45)',
+    preview:['#44ff99','#1a6a30'],
+  },
+  {
+    id:'azure',    name:'AZURE',      price:0,    free:true,
+    head:'#00cfff', headGlow:'rgba(0,207,255,0.6)',
+    bodyR:(a)=>10,                    bodyG:(a)=>Math.floor(80+a*130),  bodyB:(a)=>Math.floor(140+a*115),
+    nearGlow:'rgba(0,207,255,.18)',   border:'rgba(0,207,255,0.45)',
+    preview:['#00cfff','#005588'],
+  },
+  // ── TIER 1 (150–350) ──
+  {
+    id:'gold',     name:'GOLD',       price:150,
+    head:'#ffdd00', headGlow:'rgba(255,221,0,0.65)',
+    bodyR:(a)=>Math.floor(120+a*135), bodyG:(a)=>Math.floor(90+a*110), bodyB:(a)=>10,
+    nearGlow:'rgba(255,221,0,.18)',   border:'rgba(255,221,0,0.5)',
+    preview:['#ffdd00','#886600'],
+  },
+  {
+    id:'fire',     name:'FIRE',       price:200,
+    head:'#ff6600', headGlow:'rgba(255,102,0,0.7)',
+    bodyR:(a)=>Math.floor(120+a*135), bodyG:(a)=>Math.floor(30+a*50),  bodyB:(a)=>5,
+    nearGlow:'rgba(255,102,0,.18)',   border:'rgba(255,102,0,0.5)',
+    preview:['#ff6600','#881100'],
+  },
+  {
+    id:'lime',     name:'LIME',       price:250,
+    head:'#aaff00', headGlow:'rgba(170,255,0,0.65)',
+    bodyR:(a)=>Math.floor(60+a*100),  bodyG:(a)=>Math.floor(130+a*125),bodyB:(a)=>5,
+    nearGlow:'rgba(170,255,0,.18)',   border:'rgba(170,255,0,0.5)',
+    preview:['#aaff00','#446600'],
+  },
+  {
+    id:'teal',     name:'TEAL',       price:300,
+    head:'#00ffaa', headGlow:'rgba(0,255,170,0.7)',
+    bodyR:(a)=>10,                    bodyG:(a)=>Math.floor(110+a*145),bodyB:(a)=>Math.floor(70+a*100),
+    nearGlow:'rgba(0,255,170,.18)',   border:'rgba(0,255,170,0.5)',
+    preview:['#00ffaa','#006644'],
+  },
+  {
+    id:'pink',     name:'PINK',       price:350,
+    head:'#ff44cc', headGlow:'rgba(255,68,204,0.7)',
+    bodyR:(a)=>Math.floor(120+a*135), bodyG:(a)=>Math.floor(20+a*60),  bodyB:(a)=>Math.floor(70+a*100),
+    nearGlow:'rgba(255,68,204,.18)',  border:'rgba(255,68,204,0.5)',
+    preview:['#ff44cc','#880055'],
+  },
+  // ── TIER 2 (500–900) ──
+  {
+    id:'ice',      name:'ICE',        price:500,
+    head:'#88ddff', headGlow:'rgba(136,221,255,0.7)',
+    bodyR:(a)=>Math.floor(40+a*80),   bodyG:(a)=>Math.floor(120+a*100),bodyB:(a)=>Math.floor(150+a*105),
+    nearGlow:'rgba(136,221,255,.18)', border:'rgba(136,221,255,0.5)',
+    preview:['#88ddff','#224488'],
+  },
+  {
+    id:'obsidian', name:'OBSIDIAN',   price:600,
+    head:'#9966ff', headGlow:'rgba(153,102,255,0.7)',
+    bodyR:(a)=>Math.floor(50+a*90),   bodyG:(a)=>Math.floor(20+a*50),  bodyB:(a)=>Math.floor(100+a*120),
+    nearGlow:'rgba(153,102,255,.18)', border:'rgba(153,102,255,0.5)',
+    preview:['#9966ff','#330066'],
+  },
+  {
+    id:'copper',   name:'COPPER',     price:700,
+    head:'#ff8844', headGlow:'rgba(255,136,68,0.7)',
+    bodyR:(a)=>Math.floor(130+a*125), bodyG:(a)=>Math.floor(60+a*80),  bodyB:(a)=>Math.floor(20+a*30),
+    nearGlow:'rgba(255,136,68,.18)',  border:'rgba(255,136,68,0.5)',
+    preview:['#ff8844','#883300'],
+  },
+  {
+    id:'crimson',  name:'CRIMSON',    price:800,
+    head:'#ff2244', headGlow:'rgba(255,34,68,0.7)',
+    bodyR:(a)=>Math.floor(130+a*125), bodyG:(a)=>Math.floor(10+a*30),  bodyB:(a)=>Math.floor(20+a*40),
+    nearGlow:'rgba(255,34,68,.18)',   border:'rgba(255,34,68,0.5)',
+    preview:['#ff2244','#880011'],
+  },
+  {
+    id:'void',     name:'VOID',       price:900,
+    head:'#6644aa', headGlow:'rgba(102,68,170,0.75)',
+    bodyR:(a)=>Math.floor(20+a*60),   bodyG:(a)=>Math.floor(10+a*30),  bodyB:(a)=>Math.floor(50+a*90),
+    nearGlow:'rgba(102,68,170,.2)',   border:'rgba(102,68,170,0.5)',
+    preview:['#6644aa','#110033'],
+  },
+  // ── TIER 3 (1200–2500) ──
+  {
+    id:'lava',     name:'LAVA',       price:1200,
+    head:'#ff3300', headGlow:'rgba(255,51,0,0.8)',
+    bodyR:(a)=>Math.floor(140+a*115), bodyG:(a)=>Math.floor(20+a*60),  bodyB:(a)=>5,
+    nearGlow:'rgba(255,51,0,.22)',    border:'rgba(255,51,0,0.55)',
+    preview:['#ff3300','#ff9900','#440000'],
+  },
+  {
+    id:'galaxy',   name:'GALAXY',     price:1800,
+    head:'#cc88ff', headGlow:'rgba(204,136,255,0.8)',
+    bodyR:(a)=>Math.floor(40+a*120),  bodyG:(a)=>Math.floor(10+a*60),  bodyB:(a)=>Math.floor(80+a*140),
+    nearGlow:'rgba(204,136,255,.2)',  border:'rgba(204,136,255,0.55)',
+    preview:['#cc88ff','#330088','#000022'],
+  },
+  {
+    id:'rainbow',  name:'XAYTABXET',  price:2500,
+    head:null,      headGlow:'rgba(255,255,255,0.5)',
+    rainbow:true,
+    nearGlow:'rgba(255,255,255,.12)', border:'rgba(255,255,255,0.4)',
+    preview:['#ff0066','#ffff00','#00ff88','#0088ff'],
+  },
+];
+
+// Persist
+let coins = 0;
+let unlockedSkins = ['neon','azure'];
+let selectedSkin  = 'neon';
+
+try {
+  const sd = JSON.parse(localStorage.getItem('ns_skindata') || '{}');
+  coins         = typeof sd.coins === 'number' ? sd.coins : 0;
+  unlockedSkins = Array.isArray(sd.unlocked) ? sd.unlocked : ['neon','azure'];
+  selectedSkin  = typeof sd.selected === 'string' ? sd.selected : 'neon';
+} catch(e){}
+
+function saveSkins() {
+  try { localStorage.setItem('ns_skindata', JSON.stringify({coins, unlocked:unlockedSkins, selected:selectedSkin})); } catch(e){}
+}
+
+function getSkin() { return SKINS.find(s=>s.id===selectedSkin) || SKINS[0]; }
+
+function addCoins(n) {
+  coins += n;
+  saveSkins();
+  refreshCoinsUI();
+}
+
+function refreshCoinsUI() {
+  const a = document.getElementById('coins-disp');
+  if (a) a.textContent = coins;
+  const b = document.getElementById('shop-coins-disp');
+  if (b) b.textContent = coins;
+}
+
+// ── SHOP open/close (works from mode select overlay too) ──
+let _shopFrom = 'panel'; // 'panel' or 'modesel'
+
+function openShop() {
+  // figure out where we came from
+  const modeSelVisible = document.getElementById('ov-modesel').style.display !== 'none';
+  _shopFrom = modeSelVisible ? 'modesel' : 'panel';
+  if (_shopFrom === 'modesel') {
+    document.getElementById('ov-modesel').style.display = 'none';
+  }
+  renderShop();
+  document.getElementById('ov-shop').style.display = 'flex';
+}
+
+function closeShop() {
+  document.getElementById('ov-shop').style.display = 'none';
+  if (_shopFrom === 'modesel') {
+    document.getElementById('ov-modesel').style.display = 'flex';
+  }
+}
+
+function buySkin(id) {
+  const skin = SKINS.find(s=>s.id===id);
+  if (!skin) return;
+  if (unlockedSkins.includes(id)) {
+    selectedSkin = id;
+    saveSkins();
+    renderShop();
+    return;
+  }
+  if (coins < skin.price) {
+    showTick('◈ COINS ԲԱՎԱԿԱՆ ՉԵՆ!');
+    return;
+  }
+  coins -= skin.price;
+  unlockedSkins.push(id);
+  selectedSkin = id;
+  saveSkins();
+  refreshCoinsUI();
+  renderShop();
+  showTick('✓ SKIN UNLOCK!');
+}
+
+function renderShop() {
+  refreshCoinsUI();
+  const grid = document.getElementById('skin-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  SKINS.forEach(skin => {
+    const owned  = unlockedSkins.includes(skin.id);
+    const active = selectedSkin === skin.id;
+    const canBuy = coins >= skin.price;
+
+    const card = document.createElement('div');
+    card.className = 'sk-card' + (active ? ' sk-active' : '');
+    card.style.borderColor = skin.border;
+    if (active) { card.style.boxShadow = `0 0 16px ${skin.border}`; }
+    if (!owned && !canBuy) { card.style.opacity = '0.55'; }
+
+    // preview canvas
+    const cv = document.createElement('canvas');
+    cv.width = 80; cv.height = 28; cv.className = 'sk-preview';
+    const cx = cv.getContext('2d');
+    cx.fillStyle = '#040c18'; cx.fillRect(0,0,80,28);
+
+    if (skin.rainbow) {
+      const cols=['#ff0066','#ff8800','#ffff00','#00ff88','#0088ff','#aa00ff'];
+      cols.forEach((c,i)=>{
+        cx.fillStyle=c; cx.shadowColor=c; cx.shadowBlur=5;
+        cx.beginPath(); cx.roundRect(2+i*13,4,11,20,3); cx.fill();
+      });
+    } else {
+      // body gradient
+      const g = cx.createLinearGradient(0,0,80,0);
+      const prev = skin.preview;
+      if (prev.length === 4) {
+        g.addColorStop(0,prev[0]);g.addColorStop(0.33,prev[1]);
+        g.addColorStop(0.66,prev[2]);g.addColorStop(1,prev[3]);
+      } else {
+        g.addColorStop(0,prev[0]); g.addColorStop(1,prev[1]||prev[0]);
+      }
+      cx.fillStyle = g;
+      cx.beginPath(); cx.roundRect(2,8,52,12,3); cx.fill();
+      cx.fillStyle = skin.head || prev[0];
+      cx.shadowColor = skin.headGlow; cx.shadowBlur = 10;
+      cx.beginPath(); cx.roundRect(58,4,18,20,4); cx.fill();
+      cx.shadowBlur = 0;
+    }
+    cx.shadowBlur = 0;
+    card.appendChild(cv);
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'sk-name';
+    nameEl.style.color = skin.border.replace(/[\d.]+\)$/,'0.95)');
+    nameEl.textContent = skin.name;
+    card.appendChild(nameEl);
+
+    const tag = document.createElement('div');
+    tag.className = 'sk-tag';
+    if (active) {
+      tag.className += ' tag-active';
+      tag.textContent = '✓ ԱԿՏԻՎ';
+    } else if (owned) {
+      tag.className += ' tag-owned';
+      tag.textContent = 'ԸՆՏՐԵԼ';
+    } else if (canBuy) {
+      tag.className += ' tag-price';
+      tag.textContent = `◈ ${skin.price}`;
+    } else {
+      tag.className += ' tag-locked';
+      tag.textContent = `◈ ${skin.price}`;
+    }
+    card.appendChild(tag);
+
+    card.onclick = () => buySkin(skin.id);
+    grid.appendChild(card);
   });
 }
 
@@ -1248,7 +1588,199 @@ foodEaten=0;
 snake=[{x:12,y:12},{x:11,y:12},{x:10,y:12}];
 dir={x:1,y:0}; walls=[]; foods=[];
 updateHUD();
+refreshCoinsUI();
 drawBG();
+
+// ─── i18n ─── (ՀԱՅ / ENG / РУС — hardcoded, no external API needed)
+// Yandex Translate SDK reference: https://yandex.com/dev/translate/
+// All three languages are fully hardcoded so they work offline instantly.
+// If you want live Yandex translation, replace STRINGS.ru with a call to:
+//   POST https://translate.api.cloud.yandex.net/translate/v2/translate
+//   with your IAM token. See: https://cloud.yandex.com/docs/translate/quickstart
+
+const STRINGS = {
+  hy: {
+    selectMode:      'ԸՆՏՐԻՐ ՌԵԺԻՄ',
+    classicDesc:     'Պատից\nGame over\n1 ☆ դաշտում',
+    vortexDesc:      'Պատից\nTeleport\n1 ☆ դաշտում',
+    ultraDesc:       'Պատից\nGame over\n3 ☆ դաշտում',
+    vplusDesc:       'Պատից\nTeleport\n3 ☆ դաշտում',
+    chaosDesc:       'Պատից\nGame over\nՈՒՏԵԼԻՔ — ՔՈ ԸՆՏՐԱԾ',
+    vchaosDesc:      'Պատից\nTeleport\nՈՒՏԵԼԻՔ — ՔՈ ԸՆՏՐԱԾ',
+    vplusLabel:      'ՔՈՆMODE-Ի ԱՆՈՒՆԸ',
+    vplusPlaceholder:'ԱՆՈՒՆ...',
+    vplusBtn:        '⚡ ՍԿՍԵԼ',
+    chaosLabel:      'ՔԱՆԻ՞ ՈՒՏԵԼԻՔ ԴԱՇՏՈՒՄ',
+    chaosHint:       'նվազ. 1 — առ. 20',
+    chaosBtn:        '🔥 CHAOS ՍԿՍԵԼ',
+    vchaosLabel:     'ՔԱՆԻ՞ ՈՒՏԵԼԻՔ ԴԱՇՏՈՒՄ',
+    vchaosHint:      'նվազ. 1 — առ. 20 | պատից teleport',
+    vchaosBtn:       '🌀 VORTEX CHAOS ՍԿՍԵԼ',
+    controls:        '↑↓←→ կամ WASD — կառավարել',
+    pauseInfo:       'Սեղմիր P կամ կտտացրու շարունակելու',
+    pauseBtn:        '▶ ՇԱՐՈՒՆԱԿ',
+    scoreLabel:      'ՀԱՇԻՎ',
+    bestLabel:       'ԼԱՎԱԳՈՒՅՆ',
+    levelLabel:      'ՄԱԿԱՐԴԱԿ',
+    nextLvlLabel:    'ՀԵՏ. ՄԱԿ.',
+    lengthLabel:     'ԵՐԿԱՐՈՒԹՅՈՒՆ',
+    topLabel:        'ԼԱՎ. ՀԱՇԻՎ',
+    controlsLabel:   'ԿԱՌԱՎ.',
+    startBtn:        '▶ ՍԿՍԵԼ',
+    pauseBtnSide:    '⏸ ԴԱԴԱՐ',
+    moveCtrl:        'Տեղաշ.',
+    pauseCtrl:       'Դադար',
+    restartCtrl:     'Վերսկս.',
+  },
+  en: {
+    selectMode:      'SELECT MODE',
+    classicDesc:     'Wall =\nGame over\n1 ☆ on field',
+    vortexDesc:      'Wall =\nTeleport\n1 ☆ on field',
+    ultraDesc:       'Wall =\nGame over\n3 ☆ on field',
+    vplusDesc:       'Wall =\nTeleport\n3 ☆ on field',
+    chaosDesc:       'Wall =\nGame over\nFOOD — YOUR CHOICE',
+    vchaosDesc:      'Wall =\nTeleport\nFOOD — YOUR CHOICE',
+    vplusLabel:      'YOUR MODE NAME',
+    vplusPlaceholder:'NAME...',
+    vplusBtn:        '⚡ START',
+    chaosLabel:      'HOW MANY FOODS ON FIELD?',
+    chaosHint:       'min. 1 — max. 20',
+    chaosBtn:        '🔥 START CHAOS',
+    vchaosLabel:     'HOW MANY FOODS ON FIELD?',
+    vchaosHint:      'min. 1 — max. 20 | wall = teleport',
+    vchaosBtn:       '🌀 START VORTEX CHAOS',
+    controls:        '↑↓←→ or WASD — control',
+    pauseInfo:       'Press P or click to continue',
+    pauseBtn:        '▶ CONTINUE',
+    scoreLabel:      'SCORE',
+    bestLabel:       'BEST',
+    levelLabel:      'LEVEL',
+    nextLvlLabel:    'NEXT LVL',
+    lengthLabel:     'LENGTH',
+    topLabel:        'TOP SCORES',
+    controlsLabel:   'CONTROLS',
+    startBtn:        '▶ START',
+    pauseBtnSide:    '⏸ PAUSE',
+    moveCtrl:        'Move',
+    pauseCtrl:       'Pause',
+    restartCtrl:     'Restart',
+  },
+  ru: {
+    selectMode:      'ВЫБЕРИ РЕЖИМ',
+    classicDesc:     'Стена =\nGame over\n1 ☆ на поле',
+    vortexDesc:      'Стена =\nTeleport\n1 ☆ на поле',
+    ultraDesc:       'Стена =\nGame over\n3 ☆ на поле',
+    vplusDesc:       'Стена =\nTeleport\n3 ☆ на поле',
+    chaosDesc:       'Стена =\nGame over\nЕДА — ТВОЙ ВЫБОР',
+    vchaosDesc:      'Стена =\nTeleport\nЕДА — ТВОЙ ВЫБОР',
+    vplusLabel:      'НАЗВАНИЕ РЕЖИМА',
+    vplusPlaceholder:'ИМЯ...',
+    vplusBtn:        '⚡ НАЧАТЬ',
+    chaosLabel:      'СКОЛЬКО ЕДЫ НА ПОЛЕ?',
+    chaosHint:       'мин. 1 — макс. 20',
+    chaosBtn:        '🔥 НАЧАТЬ CHAOS',
+    vchaosLabel:     'СКОЛЬКО ЕДЫ НА ПОЛЕ?',
+    vchaosHint:      'мин. 1 — макс. 20 | стена = teleport',
+    vchaosBtn:       '🌀 НАЧАТЬ VORTEX CHAOS',
+    controls:        '↑↓←→ или WASD — управление',
+    pauseInfo:       'Нажми P или кликни для продолжения',
+    pauseBtn:        '▶ ПРОДОЛЖИТЬ',
+    scoreLabel:      'СЧЁТ',
+    bestLabel:       'ЛУЧШИЙ',
+    levelLabel:      'УРОВЕНЬ',
+    nextLvlLabel:    'СЛ. УР.',
+    lengthLabel:     'ДЛИНА',
+    topLabel:        'РЕКОРДЫ',
+    controlsLabel:   'УПРАВЛ.',
+    startBtn:        '▶ СТАРТ',
+    pauseBtnSide:    '⏸ ПАУЗА',
+    moveCtrl:        'Движение',
+    pauseCtrl:       'Пауза',
+    restartCtrl:     'Рестарт',
+  },
+};
+
+let currentLang = 'hy';
+
+function applyStrings(s) {
+  // Mode select subtitle
+  const sub = document.querySelector('.ms-sub');
+  if (sub) sub.textContent = s.selectMode;
+
+  // Mode card descriptions
+  const descs = document.querySelectorAll('.mcard-desc');
+  const descKeys = ['classicDesc','vortexDesc','ultraDesc','vplusDesc','chaosDesc','vchaosDesc'];
+  descs.forEach((el, i) => {
+    if (descKeys[i]) el.innerHTML = s[descKeys[i]].replace(/\n/g,'<br>');
+  });
+
+  // VORTEX+ section
+  const vpLabel = document.querySelector('#vplus-name-wrap label');
+  if (vpLabel) vpLabel.textContent = s.vplusLabel;
+  const vpInput = document.getElementById('vplus-name-input');
+  if (vpInput) vpInput.placeholder = s.vplusPlaceholder;
+  const vpBtn = document.getElementById('vplus-start-btn');
+  if (vpBtn) vpBtn.textContent = s.vplusBtn;
+
+  // CHAOS section
+  const chLabel = document.querySelector('#chaos-wrap label');
+  if (chLabel) chLabel.textContent = s.chaosLabel;
+  const chHint = document.querySelector('.chaos-hint');
+  if (chHint) chHint.textContent = s.chaosHint;
+  const chBtn = document.getElementById('chaos-start-btn');
+  if (chBtn) chBtn.textContent = s.chaosBtn;
+
+  // VCHAOS section
+  const vcLabel = document.querySelector('#vchaos-wrap label');
+  if (vcLabel) vcLabel.textContent = s.vchaosLabel;
+  const vcHint = document.querySelector('.vchaos-hint');
+  if (vcHint) vcHint.textContent = s.vchaosHint;
+  const vcBtn = document.getElementById('vchaos-start-btn');
+  if (vcBtn) vcBtn.textContent = s.vchaosBtn;
+
+  // Mode select controls hint
+  const ctrlInfo = document.querySelector('#ov-modesel .ov-info');
+  if (ctrlInfo) ctrlInfo.textContent = s.controls;
+
+  // Pause overlay
+  const pauseInfo = document.querySelector('#ov-pause .ov-info');
+  if (pauseInfo) pauseInfo.textContent = s.pauseInfo;
+  const pauseBtn = document.querySelector('#ov-pause .btn-c');
+  if (pauseBtn) pauseBtn.textContent = s.pauseBtn;
+
+  // Side panel labels (in DOM order)
+  const slabels = document.querySelectorAll('.slabel');
+  const labelMap = [s.scoreLabel, s.bestLabel, s.levelLabel, s.nextLvlLabel, s.lengthLabel, s.topLabel, s.controlsLabel];
+  slabels.forEach((el, i) => { if (labelMap[i] !== undefined) el.textContent = labelMap[i]; });
+
+  // Side panel buttons
+  const sideBtns = document.querySelectorAll('#panel .btn');
+  if (sideBtns[0]) sideBtns[0].textContent = s.startBtn;
+  if (sideBtns[1]) sideBtns[1].textContent = s.pauseBtnSide;
+
+  // Controls legend — rebuild cleanly each time
+  const legEl = document.querySelector('.leg');
+  if (legEl) {
+    legEl.innerHTML =
+      `<b>↑↓←→</b> ${s.moveCtrl}<br>` +
+      `<b>WASD</b> ${s.moveCtrl}<br>` +
+      `<b>P</b> ${s.pauseCtrl}<br>` +
+      `<b>R</b> ${s.restartCtrl}`;
+  }
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  // Update active button highlight
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    const map = { hy: 'ՀԱՅ', en: 'ENG', ru: 'РУС' };
+    b.classList.toggle('active', b.textContent.trim() === map[lang]);
+  });
+  applyStrings(STRINGS[lang]);
+}
+
+// Launch with Armenian
+setLang('hy');
 </script>
 </body>
 </html>
